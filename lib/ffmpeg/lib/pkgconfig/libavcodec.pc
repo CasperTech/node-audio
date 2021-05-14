@@ -1,0 +1,13 @@
+prefix=${pcfiledir}/../..
+
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: libavcodec
+Description: FFmpeg codec library
+Version: 58.91.100
+Requires: libswresample >= 3.7.100, libavutil >= 56.51.100 
+Conflicts:
+Libs: -L"${libdir}"  -lavcodec fdk-aac.lib libmp3lame-static.lib libmpghip-static.lib -libpath:/c/dev/vcpkg/installed/x64-windows-static/lib/pkgconfig/../../lib opus.lib -libpath:/c/dev/vcpkg/installed/x64-windows-static/lib/pkgconfig/../../lib libspeex.lib -libpath:/c/dev/vcpkg/installed/x64-windows-static/lib/pkgconfig/../../lib vorbis.lib ogg.lib -libpath:/c/dev/vcpkg/installed/x64-windows-static/lib/pkgconfig/../../lib vorbisenc.lib vorbis.lib ogg.lib libwavpack.lib mfplat.lib mfuuid.lib ole32.lib strmiids.lib ole32.lib user32.lib 
+Cflags: -I"${includedir}"
