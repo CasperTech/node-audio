@@ -19,9 +19,11 @@ namespace CasperTech
 
     AudioPlayerImpl::~AudioPlayerImpl()
     {
-        std::unique_lock<std::mutex> commandLock(_commandMutex);
-        _running = false;
-        _commandWait.notify_all();
+        {
+            std::unique_lock<std::mutex> commandLock(_commandMutex);
+            _running = false;
+            _commandWait.notify_all();
+        }
         if(_controlThread.joinable())
         {
             _controlThread.join();

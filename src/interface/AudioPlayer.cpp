@@ -4,7 +4,6 @@
 
 #include <implementation/AudioPlayerImpl.h>
 
-#include <iostream>
 #include <memory>
 
 namespace CasperTech::interface
@@ -51,6 +50,6 @@ namespace CasperTech::interface
 
     AudioPlayer::~AudioPlayer()
     {
-        std::cout << "Destructing";
+
     }
 }
