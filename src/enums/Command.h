@@ -3,5 +3,9 @@
 enum class Command
 {
     None,
-    Load
+    Load,
+    Play,
+    Pause,
+    Seek,
+    Stop
 };

@@ -1,17 +1,23 @@
 {
   "name": "@caspertech/node-audio",
-  "version": "1.0.0",
+  "version": "0.0.7",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "configure": "ncmake configure",
+    "build": "ncmake build",
+    "build-ts": "tsc",
+    "prepublish": "tsc",
+    "install": "ncmake configure && ncmake build"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "node-addon-api": "^3.1.0"
+    "@types/node": "^16.4.12",
+    "typescript": "^4.3.5"
   },
   "dependencies": {
+    "node-addon-api": "^3.1.0",
     "node-cmake": "git+https://github.com/CasperTech/node-cmake.git#tmettam/clion"
   }
 }

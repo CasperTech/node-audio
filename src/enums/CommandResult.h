@@ -4,5 +4,7 @@ enum class CommandResult
 {
         None,
         Success,
-        GenericFailure
+        GenericFailure,
+        LoadError,
+        PlayError,
 };

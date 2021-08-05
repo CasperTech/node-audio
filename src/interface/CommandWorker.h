@@ -1,6 +1,6 @@
 #include <napi.h>
 
-#include <structs/PlayerCommand.h>
+#include <structs/events/CommandEvent.h>
 
 #include <functional>
 #include <utility>

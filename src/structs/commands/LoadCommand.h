@@ -1,13 +1,13 @@
 #pragma once
 
-#include <structs/PlayerCommand.h>
+#include <structs/events/CommandEvent.h>
 
 namespace CasperTech
 {
-    struct LoadCommand: public PlayerCommand
+    struct LoadCommand: public CommandEvent
     {
         LoadCommand()
-            : PlayerCommand(Command::Load)
+            : CommandEvent(Command::Load)
         {
 
         }
