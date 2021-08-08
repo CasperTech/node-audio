@@ -1,4 +1,5 @@
 #include "RtAudioStream.h"
+#include "AudioCallbackContainer.h"
 
 namespace CasperTech
 {
@@ -12,15 +13,30 @@ namespace CasperTech
 
     RtAudioStream::~RtAudioStream()
     {
+        if (_container != nullptr)
+        {
+            std::unique_lock<std::mutex> lk(_container->containerMutex);
+            _container->rtAudioStream = nullptr;
+        }
+        std::unique_lock<std::mutex> _fillBufferMutex;
         _ringBuffer->shutdown();
         if(_rtAudio->isStreamRunning())
         {
+#ifdef _DEBUG
+            std::cout << "Aborting Stream " << _rtAudio << std::endl;
+#endif
             _rtAudio->abortStream();
         }
         if (_rtAudio->isStreamOpen())
         {
+#ifdef _DEBUG
+            std::cout << "Closing Stream " << _rtAudio << std::endl;
+#endif
             _rtAudio->closeStream();
         }
+#ifdef _DEBUG
+        std::cout << "RtAudioStreamDestroyed " << _rtAudio << std::endl;
+#endif
     }
 
     std::map<uint32_t, std::string> RtAudioStream::getDevices()
@@ -84,16 +100,25 @@ namespace CasperTech
     int RtAudioStream::fillBufferStatic(void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames,
                                         double streamTime, RtAudioStreamStatus status, void* data)
     {
-        auto renderer = static_cast<RtAudioStream*>(data);
+        auto container = static_cast<AudioCallbackContainer*>(data);
+        std::unique_lock<std::mutex> lk(container->containerMutex);
+        auto renderer = container->rtAudioStream;
+        if (!renderer)
+        {
+            delete container;
+            return 2;
+        }
         return renderer->fillBuffer(outputBuffer, inputBuffer, nBufferFrames, streamTime, status);
     }
 
     int RtAudioStream::fillBuffer(void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames, double streamTime,
                                   RtAudioStreamStatus status)
     {
+        std::unique_lock<std::mutex> _fillBufferMutex;
         uint64_t bytesToCopy = nBufferFrames * _sampleSize *  _sourceChannels;
         if (_ringBuffer->get(reinterpret_cast<uint8_t*>(outputBuffer), bytesToCopy))
         {
+            std::cout << "RingBuffer shutdown" << std::endl;
             return 1;
         }
         return 0;
@@ -145,7 +170,7 @@ namespace CasperTech
         return static_cast<uint8_t>(_selectedDevice.outputChannels);
     }
 
-    void RtAudioStream::audio(uint8_t* buffer, uint64_t sampleCount)
+    void RtAudioStream::audio(const uint8_t* buffer, uint64_t sampleCount)
     {
         uint64_t byteSize = sampleCount * _sampleSize * _sourceChannels;
         _ringBuffer->put(buffer, byteSize);
@@ -163,7 +188,13 @@ namespace CasperTech
         params.nChannels = channels;
         _ringBuffer = std::make_unique<RingBuffer>(bufSize);
         RtAudio::StreamOptions options;
-        _rtAudio->openStream(&params, nullptr, fmt, sampleRate, &bufFrames, &RtAudioStream::fillBufferStatic, this, &options, nullptr);
+#ifdef _DEBUG
+        std::cout << "Starting RtAudioStream " << _rtAudio << " with " << unsigned(channels) << " channels, sample rate " << sampleRate << std::endl;
+#endif
+
+        _container = new AudioCallbackContainer();
+        _container->rtAudioStream = this;
+        _rtAudio->openStream(&params, nullptr, fmt, sampleRate, &bufFrames, &RtAudioStream::fillBufferStatic, _container, &options, nullptr);
         _rtAudio->startStream();
     }
 }

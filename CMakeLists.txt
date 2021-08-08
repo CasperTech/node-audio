@@ -33,6 +33,10 @@ IF (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
             ${FFMPEG_LIBRARY_DIR}/avcodec.lib
             ${FFMPEG_LIBRARY_DIR}/avutil.lib
             ${FFMPEG_LIBRARY_DIR}/swresample.lib
+            ${FFMPEG_LIBRARY_DIR}/swscale.lib
+            ${FFMPEG_LIBRARY_DIR}/avresample.lib
+            ${FFMPEG_LIBRARY_DIR}/postproc.lib
+            ${FFMPEG_LIBRARY_DIR}/avfilter.lib
             ${CMAKE_CURRENT_LIST_DIR}/lib/lame/libmp3lame-static.lib
             ${CMAKE_CURRENT_LIST_DIR}/lib/lame/libmpghip-static.lib
             ${CMAKE_CURRENT_LIST_DIR}/lib/ogg/ogg.lib
@@ -54,12 +58,16 @@ else()
     find_package(PkgConfig REQUIRED)
     pkg_search_module(LIBAVFORMAT REQUIRED libavformat)
     pkg_search_module(LIBAVCODEC REQUIRED libavcodec)
+    pkg_search_module(LIBAVFILTER REQUIRED libavfilter)
     pkg_search_module(LIBAVUTIL REQUIRED libavutil)
+    pkg_search_module(LIBAVRESAMPLE REQUIRED libavresample)
     pkg_search_module(LIBSWRESAMPLE REQUIRED libswresample)
+    pkg_search_module(LIBSWSCALE REQUIRED libswscale)
+    pkg_search_module(LIBPOSTPROC REQUIRED libpostproc)
 
-    set(FFMPEG_INCLUDE_DIRS ${LIBAVFORMAT_INCLUDE_DIRS} ${LIBAVCODEC_INCLUDE_DIRS})
-    set(FFMPEG_LIBRARY_DIR ${LIBAVFORMAT_LIBRARY_DIRS} ${LIBAVCODEC_LIBRARY_DIRS})
-    set(FFMPEG_LIBRARIES ${LIBAVFORMAT_LIBRARIES} ${LIBAVCODEC_LIBRARIES} ${LIBAVUTIL_LIBRARIES} ${LIBSWRESAMPLE_LIBRARIES})
+    set(FFMPEG_INCLUDE_DIRS ${LIBAVFORMAT_INCLUDE_DIRS} ${LIBAVCODEC_INCLUDE_DIRS} ${LIBAVFILTER_INCLUDE_DIRS} ${LIBAVRESAMPLE_INCLUDE_DIRS})
+    set(FFMPEG_LIBRARY_DIR ${LIBAVFORMAT_LIBRARY_DIRS} ${LIBAVCODEC_LIBRARY_DIRS} ${LIBAVFILTER_LIBRARY_DIRS} ${LIBAVRESAMPLE_INCLUDE_DIRS})
+    set(FFMPEG_LIBRARIES ${LIBAVFORMAT_LIBRARIES} ${LIBAVCODEC_LIBRARIES} ${LIBAVUTIL_LIBRARIES} ${LIBSWRESAMPLE_LIBRARIES} ${LIBAVRESAMPLE_LIBRARIES} ${LIBSWSCALE_LIBRARIES} ${LIBPOSTPROC_LIBRARIES} ${LIBAVFILTER_LIBRARIES})
 endif()
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static library")
@@ -87,6 +95,8 @@ set(LIB_FILES
         src/implementation/AudioPlayerImpl.h
         src/implementation/SampleRateConverter.cpp
         src/implementation/SampleRateConverter.h
+        src/implementation/VolumeFilter.cpp
+        src/implementation/VolumeFilter.h
         src/implementation/RtAudioRenderer.cpp
         src/implementation/RtAudioRenderer.h
         src/implementation/RtAudioStream.cpp
@@ -94,6 +104,7 @@ set(LIB_FILES
         src/implementation/FFSource.cpp
         src/implementation/FFSource.h
         src/implementation/FFFrame.h
+        src/implementation/AudioCallbackContainer.h
         src/structs/events/CommandEvent.h
         src/structs/PlayerEvent.h
         src/structs/commands/LoadCommand.h
@@ -101,6 +112,7 @@ set(LIB_FILES
         src/structs/commands/StopCommand.h
         src/structs/commands/SeekCommand.h
         src/structs/commands/PauseCommand.h
+        src/structs/commands/SetVolumeCommand.h
         src/structs/events/PlaybackFinishedEvent.h
         src/structs/events/PlaybackErrorEvent.h
         src/structs/events/PlayingEvent.h

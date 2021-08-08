@@ -4,7 +4,9 @@
 #include <exceptions/AudioException.h>
 
 #include <algorithm>
+#ifdef _DEBUG
 #include <iostream>
+#endif
 
 namespace CasperTech
 {
@@ -77,6 +79,11 @@ namespace CasperTech
         }
         _sink = sink;
         _sink->setSource(shared_from_this(), selectedFormat, sampleRate, _sinkChannels);
+
+#ifdef _DEBUG
+        std::cout << getName() << " -> " << sink->getName() << ": " << selectedFormat << ", sameplerate: " << sampleRate << ", channels: " << unsigned(_sinkChannels) << std::endl;
+#endif
+
         onSinkConfigured();
     }
 

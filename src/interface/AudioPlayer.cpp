@@ -18,6 +18,7 @@ namespace CasperTech::interface
                 InstanceMethod("stop", &AudioPlayer::stop),
                 InstanceMethod("seek", &AudioPlayer::seek),
                 InstanceMethod("pause", &AudioPlayer::pause),
+                InstanceMethod("setVolume", &AudioPlayer::setVolume),
                 InstanceMethod("setEventCallback", &AudioPlayer::setEventCallback)
         });
 
@@ -75,7 +76,7 @@ namespace CasperTech::interface
         int64_t ms = info[0].As<Napi::Number>().Int64Value();
         auto worker = new CommandWorker(info.Env(), deferred, [this, ms](const ResultCallback& callback)
         {
-            _audioPlayer->seek(callback, ms);
+            _audioPlayer->seek(ms, callback);
         });
 
         worker->Queue();
@@ -152,6 +153,34 @@ namespace CasperTech::interface
         return env.Undefined();
     }
 
+    Napi::Value AudioPlayer::setVolume(const Napi::CallbackInfo& info)
+    {
+        auto env = info.Env();
+        if(info.Length() <= 0 || !info[0].IsNumber())
+        {
+            throw Napi::Error::New(env, "Must supply a volume parameter");
+        }
+        float volume = info[0].As<Napi::Number>().FloatValue();
+        if (volume < 0.0)
+        {
+            throw Napi::Error::New(env, "Volume must be >= 0.0");
+        }
+        if (volume > 1.0)
+        {
+            throw Napi::Error::New(env, "Volume must be <= 1.0");
+        }
+
+        Napi::Promise::Deferred deferred = Napi::Promise::Deferred::New(env);
+
+        auto worker = new CommandWorker(info.Env(), deferred, [this, volume](const ResultCallback& callback)
+        {
+            _audioPlayer->setVolume(volume, callback);
+        });
+
+        worker->Queue();
+        return deferred.Promise();
+    }
+
     AudioPlayer::~AudioPlayer()
     {
 
@@ -171,14 +200,11 @@ namespace CasperTech::interface
         auto ref = std::make_shared<ScopedNodeRef<Napi::Function>>(persistent);
         cb.NonBlockingCall([ref, status, message](Napi::Env env, Napi::Function jsCallback)
         {
-            // std::cout << "Callback create str" << std::endl;
             auto str = Napi::String::New(env, message.c_str());
-            // std::cout << "Callback status " << static_cast<int>(status) << " message " << message << std::endl;
             jsCallback.Call({
                 Napi::Number::New(env, static_cast<unsigned int>(status)),
                 str
             });
-            // std::cout << "Callback done" << std::endl;
         });
     }
 

@@ -4,18 +4,24 @@
 #include <interfaces/IAudioSource.h>
 
 extern "C" {
-    #include <libswresample/swresample.h>
-    #include <libavutil/opt.h>
+#include "libavfilter/avfilter.h"
+#include "libavfilter/buffersink.h"
+#include "libavfilter/buffersrc.h"
+#include "libavutil/channel_layout.h"
+#include "libavutil/opt.h"
+#include "libavutil/samplefmt.h"
 }
+
+#include <atomic>
 
 namespace CasperTech
 {
-    class SampleRateConverter: public IAudioSink, public IAudioSource
+    class VolumeFilter: public IAudioSink, public IAudioSource
     {
         public:
-            SampleRateConverter();
+            VolumeFilter();
 
-            ~SampleRateConverter() override;
+            ~VolumeFilter() override;
 
             /* <IAudioNode> */
             SampleFormatFlags getSupportedSampleFormats() override;
@@ -23,7 +29,6 @@ namespace CasperTech
             std::vector<uint32_t> getSupportedSampleRates() override;
 
             uint8_t getSupportedChannels() override;
-
             std::string getName() const override;
             /* </IAudioNode> */
 
@@ -37,13 +42,31 @@ namespace CasperTech
             void onEos() override;
             /* </IAudioSource> */
 
+            void setVolume(float volume);
+
             void init();
 
-            static AVSampleFormat getSwrSampleFormat(SampleFormatFlags sampleFormat);
+            static AVSampleFormat getAvSampleFormat(SampleFormatFlags sampleFormat);
             static int checkError(int errnum);
 
         private:
-            SwrContext* _swrCtx;
+            std::mutex _pipelineMutex;
+
+            AVFrame* _frame;
+            AVFilterGraph* _filterGraph = nullptr;
+            const AVFilter* _aBufferFilter = nullptr;
+            AVFilterContext* _aBufferCtx = nullptr;
+            AVFilterContext* _aBufferSinkCtx = nullptr;
+            const AVFilter* _aBufferSink = nullptr;
+            AVFilterContext* _volumeCtx = nullptr;
+            const AVFilter*  _volumeFilter;
+            AVSampleFormat _avSampleFormat;
+            uint64_t _avChannelLayout;
+            uint64_t _pts = 0;
+            uint8_t _sampleSize = 0;
+            float _volume = 1.0;
+
+
             bool _sinkConfigured = false;
             bool _sourceConfigured = false;
             bool _configured = false;

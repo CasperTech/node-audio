@@ -30,6 +30,7 @@ namespace CasperTech::interface
             Napi::Value stop(const Napi::CallbackInfo& info);
             Napi::Value seek(const Napi::CallbackInfo& info);
             Napi::Value pause(const Napi::CallbackInfo& info);
+            Napi::Value setVolume(const Napi::CallbackInfo& info);
             Napi::Value setEventCallback(const Napi::CallbackInfo& info);
             std::shared_ptr<CasperTech::AudioPlayerImpl> _audioPlayer;
             std::mutex _statusCallbackMutex;

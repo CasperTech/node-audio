@@ -42,6 +42,11 @@ namespace CasperTech
         return supported;
     }
 
+    std::string SampleRateConverter::getName() const
+    {
+        return "SampleRateConverter";
+    }
+
     uint8_t SampleRateConverter::getSupportedChannels()
     {
         if (_source)
@@ -55,7 +60,7 @@ namespace CasperTech
         return 2;
     }
 
-    void SampleRateConverter::audio(uint8_t* buffer, uint64_t sampleCount)
+    void SampleRateConverter::audio(const uint8_t* buffer, uint64_t sampleCount)
     {
         //std::cout << "Audio " << sampleCount << " samples" << std::endl;
         if(!_configured)
@@ -75,8 +80,6 @@ namespace CasperTech
         int samplesConverted = checkError(swr_convert(_swrCtx, reinterpret_cast<uint8_t**>(&_dstData), static_cast<int>(dst_nb_samples), const_cast<const uint8_t**>(&buffer), static_cast<int>(sampleCount)));
         if (_sink)
         {
-            uint8_t* buf = reinterpret_cast<uint8_t*>(malloc(4096));
-
             _sink->audio(reinterpret_cast<uint8_t*>(&_dstData[0]), samplesConverted);
         }
     }
@@ -181,7 +184,14 @@ namespace CasperTech
         if (_sinkConfigured)
         {
             // Re-connect sink to establish preferred sample rate and channels
+#ifdef _DEBUG
+            std::cout << _source->getName() << " connected to " << getName() << ", renegotiating with " << _sink->getName() << " due to changed source" << std::endl;
+#endif
             connectSink(_sink);
+        }
+        else
+        {
+            std::cout << _source->getName() << " connected to " << getName();
         }
     }
 

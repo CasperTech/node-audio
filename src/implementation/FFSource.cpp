@@ -231,9 +231,14 @@ namespace CasperTech
         }
         double timeBase = av_q2d(_stream->time_base);
 
-        auto ts = static_cast<int64_t>((timeBase / 1000.0) * timeMs);
+        auto ts = static_cast<int64_t>(timeMs / (timeBase * 1000));
 
         avformat_seek_file(_fmtCtx, _streamIndex, ts, ts,  ts, 0);
+    }
+
+    std::string FFSource::getName() const
+    {
+        return "FFSource";
     }
 }
 

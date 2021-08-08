@@ -10,6 +10,7 @@
 
 namespace CasperTech
 {
+    struct AudioCallbackContainer;
     class RtAudioStream
     {
         public:
@@ -20,7 +21,7 @@ namespace CasperTech
             void selectDevice(uint32_t device);
             void selectDefaultDevice();
             void onEos();
-            void audio(uint8_t* buffer, uint64_t sampleCount);
+            void audio(const uint8_t* buffer, uint64_t sampleCount);
             void configure(RtAudioFormat fmt, uint8_t channels, uint32_t sampleRate, uint8_t sampleSize, uint32_t bufFrames, uint32_t bufSize);
             [[nodiscard]] SampleFormatFlags getSupportedSampleFormats() const;
             [[nodiscard]] std::vector<uint32_t> getSupportedSampleRates() const;
@@ -40,5 +41,6 @@ namespace CasperTech
             uint8_t _sampleSize = 0;
             uint8_t _sourceChannels = 0;
             uint32_t _bufMs = 100;
+            AudioCallbackContainer* _container = nullptr;
     };
 }

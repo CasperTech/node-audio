@@ -7,5 +7,6 @@ enum class Command
     Play,
     Pause,
     Seek,
-    Stop
+    Stop,
+    SetVolume
 };

@@ -30,10 +30,11 @@ namespace CasperTech
             SampleFormatFlags getSupportedSampleFormats() override;
             std::vector<uint32_t> getSupportedSampleRates() override;
             uint8_t getSupportedChannels() override;
+            std::string getName() const override;
             /* </IAudioNode> */
 
             /* <IAudioSink> */
-            void audio(uint8_t* buffer, uint64_t sampleCount) override;
+            void audio(const uint8_t* buffer, uint64_t sampleCount) override;
             void onSourceConfigured() override;
             void onEos() override;
             /* </IAudioSink> */

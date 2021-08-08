@@ -10,7 +10,7 @@ namespace CasperTech
             explicit RingBuffer(size_t size);
             ~RingBuffer();
 
-            void put(uint8_t* buf, size_t size);
+            void put(const uint8_t* buf, size_t size);
 
             int get(uint8_t* buf, size_t size);
 

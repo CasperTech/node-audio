@@ -28,6 +28,7 @@ namespace CasperTech
             SampleFormatFlags getSupportedSampleFormats() override;
             std::vector<uint32_t> getSupportedSampleRates() override;
             uint8_t getSupportedChannels() override;
+            std::string getName() const override;
             /* </IAudioNode> */
 
         private:
@@ -45,6 +46,7 @@ namespace CasperTech
             uint32_t _streamIndex = 0;
             uint32_t _channels = 0;
             uint32_t _sampleRate = 0;
+            float _volume = 1.0;
     };
 }
 

@@ -1,4 +1,5 @@
 #include "AudioPlayerImpl.h"
+#include "VolumeFilter.h"
 
 #include <implementation/FFSource.h>
 #include <implementation/FFFrame.h>
@@ -9,6 +10,7 @@
 #include <structs/commands/StopCommand.h>
 #include <structs/commands/SeekCommand.h>
 #include <structs/commands/PauseCommand.h>
+#include <structs/commands/SetVolumeCommand.h>
 #include <structs/events/PlaybackFinishedEvent.h>
 
 #include <exceptions/CommandException.h>
@@ -25,6 +27,7 @@ namespace CasperTech
     AudioPlayerImpl::AudioPlayerImpl(IAudioPlayerEventReceiver* eventReceiver)
         : _eventReceiver(eventReceiver)
         , _audioRenderer(std::make_shared<RtAudioRenderer>())
+        , _volumeFilter(std::make_shared<VolumeFilter>())
         , _sampleRateConverter(std::make_shared<SampleRateConverter>())
     {
         std::unique_lock<std::mutex> commandLock(_eventThreadMutex);
@@ -203,12 +206,20 @@ namespace CasperTech
         addEvent(pauseCommand);
     }
 
-    void AudioPlayerImpl::seek(const ResultCallback& callback, int64_t seekMs)
+    void AudioPlayerImpl::seek(int64_t seekMs, const ResultCallback& callback)
     {
         auto seekCommand = std::make_shared<SeekCommand>();
         seekCommand->completionEvent = callback;
         seekCommand->seekMs = seekMs;
         addEvent(seekCommand);
+    }
+
+    void AudioPlayerImpl::setVolume(float volume, const ResultCallback& callback)
+    {
+        auto setVolumeCommand = std::make_shared<SetVolumeCommand>();
+        setVolumeCommand->completionEvent = callback;
+        setVolumeCommand->volume = volume;
+        addEvent(setVolumeCommand);
     }
 
     void AudioPlayerImpl::playThreadFunc()
@@ -222,7 +233,7 @@ namespace CasperTech
         std::unique_ptr<FFFrame> frame = std::make_unique<FFFrame>();
         int result = 1;
         addEvent(std::make_shared<PlayingEvent>());
-        while(_readerState > PlayerState::Loaded && result > 0)
+        while(_readerState > PlayerState::Loaded)
         {
             if (_readerState == PlayerState::Paused)
             {
@@ -233,16 +244,44 @@ namespace CasperTech
                 });
                 continue;
             }
-            if (_seekTo > -1)
+            if (_commandWaiting)
             {
-                _loadedFile->seek(_seekTo);
-                _seekTo = -1;
+                {
+                    std::unique_lock<std::mutex> lk(_directPlayerCommandMutex);
+                    while(!_directPlayerCommandQueue.empty())
+                    {
+                        auto evt = _directPlayerCommandQueue.front();
+                        _directPlayerCommandQueue.pop();
+                        switch(evt->commandType)
+                        {
+                            case Command::Seek:
+                            {
+                                auto event = std::static_pointer_cast<SeekCommand>(evt);
+                                _loadedFile->seek(event->seekMs);
+                                break;
+                            }
+                            case Command::SetVolume:
+                            {
+                                auto event = std::static_pointer_cast<SetVolumeCommand>(evt);
+                                _volumeFilter->setVolume(event->volume);
+                                break;
+                            }
+                            default:
+                                break;
+                        }
+                    }
+                    _commandWaiting = false;
+                }
             }
             result = _loadedFile->getPacket(frame.get());
             if (result == -11)
             {
                 result = 1;
                 continue;
+            }
+            if (result == 0)
+            {
+                _readerState = PlayerState::Paused;
             }
         }
         if (result < 0)
@@ -253,7 +292,7 @@ namespace CasperTech
         }
         _loadedFile->eos();
         addEvent(std::make_shared<PlaybackFinishedEvent>());
-        _seekTo = -1;
+        _commandWaiting = false;
     }
 
     void AudioPlayerImpl::handleCommand(const std::shared_ptr<CommandEvent>& cmd)
@@ -300,7 +339,9 @@ namespace CasperTech
                         try
                         {
                             _sampleRateConverter->connectSink(_audioRenderer);
-                            _loadedFile->connectSink(_sampleRateConverter);
+                            //_loadedFile->connectSink(_sampleRateConverter);
+                            _volumeFilter->connectSink(_sampleRateConverter);
+                            _loadedFile->connectSink(_volumeFilter);
                         }
                         catch(const AudioException& e)
                         {
@@ -308,7 +349,6 @@ namespace CasperTech
                             evt->completionEvent(CommandResult::PlayError, e.message());
                             return;
                         }
-
                         // Start in a paused state
                         _readerState = PlayerState::Paused;
                         _playThread = std::thread(&AudioPlayerImpl::playThreadFunc, this);
@@ -393,10 +433,21 @@ namespace CasperTech
                     evt->completionEvent(CommandResult::Success, "");
                     break;
                 }
+                case Command::SetVolume:
+                {
+                    auto evt = std::static_pointer_cast<SetVolumeCommand>(cmd);
+                    std::unique_lock<std::mutex> lk(_directPlayerCommandMutex);
+                    _directPlayerCommandQueue.push(cmd);
+                    _commandWaiting = true;
+                    evt->completionEvent(CommandResult::Success, "");
+                    break;
+                }
                 case Command::Seek:
                 {
                     auto evt = std::static_pointer_cast<SeekCommand>(cmd);
-                    _seekTo = evt->seekMs;
+                    std::unique_lock<std::mutex> lk(_directPlayerCommandMutex);
+                    _directPlayerCommandQueue.push(cmd);
+                    _commandWaiting = true;
                     evt->completionEvent(CommandResult::Success, "");
                     break;
                 }

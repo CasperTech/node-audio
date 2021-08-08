@@ -62,7 +62,7 @@ namespace CasperTech
         return size;
     }
 
-    void RingBuffer::put(uint8_t* buf, size_t bytes)
+    void RingBuffer::put(const uint8_t* buf, size_t bytes)
     {
         _eos = -1;
         if (bytes == 0)

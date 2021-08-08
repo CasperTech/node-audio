@@ -15,6 +15,7 @@ npm-debug.log
 cmake-build-debug
 .idea
 build
+build-vs
 
 
 

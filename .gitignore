@@ -6,3 +6,6 @@ build-vs/
 /cmake-build-debug
 /cmake-build-release
 build/
+build-vs/
+/test.js
+/test.js.map
