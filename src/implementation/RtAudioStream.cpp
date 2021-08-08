@@ -137,23 +137,23 @@ namespace CasperTech
         {
             flags = flags | SampleFormatFlags::S8;
         }
-        else if (fmt & RTAUDIO_SINT16)
+        if (fmt & RTAUDIO_SINT16)
         {
             flags = flags | SampleFormatFlags::S16;
         }
-        else if (fmt & RTAUDIO_SINT24)
+        if (fmt & RTAUDIO_SINT24)
         {
             flags = flags | SampleFormatFlags::S24;
         }
-        else if (fmt & RTAUDIO_SINT32)
+        if (fmt & RTAUDIO_SINT32)
         {
             flags = flags | SampleFormatFlags::S32;
         }
-        else if (fmt & RTAUDIO_FLOAT32)
+        if (fmt & RTAUDIO_FLOAT32)
         {
             flags = flags | SampleFormatFlags::FLT;
         }
-        else if (fmt & RTAUDIO_FLOAT64)
+        if (fmt & RTAUDIO_FLOAT64)
         {
             flags = flags | SampleFormatFlags::DBL;
         }
