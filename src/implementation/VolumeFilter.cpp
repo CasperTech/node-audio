@@ -313,8 +313,11 @@ namespace CasperTech
 
     VolumeFilter::~VolumeFilter()
     {
-        avfilter_graph_free(&_filterGraph);
-        av_frame_free(&_frame);
+        if (_filterGraph != nullptr)
+        {
+            avfilter_graph_free(&_filterGraph);
+            av_frame_free(&_frame);
+        }
     }
 
     void VolumeFilter::setVolume(float volume)
