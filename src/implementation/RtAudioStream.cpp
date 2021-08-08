@@ -23,19 +23,19 @@ namespace CasperTech
         if(_rtAudio->isStreamRunning())
         {
 #ifdef _DEBUG
-            std::cout << "Aborting Stream " << _rtAudio << std::endl;
+            std::cout << "Aborting Stream " << std::endl;
 #endif
             _rtAudio->abortStream();
         }
         if (_rtAudio->isStreamOpen())
         {
 #ifdef _DEBUG
-            std::cout << "Closing Stream " << _rtAudio << std::endl;
+            std::cout << "Closing Stream " << std::endl;
 #endif
             _rtAudio->closeStream();
         }
 #ifdef _DEBUG
-        std::cout << "RtAudioStreamDestroyed " << _rtAudio << std::endl;
+        std::cout << "RtAudioStreamDestroyed " << std::endl;
 #endif
     }
 
@@ -189,7 +189,7 @@ namespace CasperTech
         _ringBuffer = std::make_unique<RingBuffer>(bufSize);
         RtAudio::StreamOptions options;
 #ifdef _DEBUG
-        std::cout << "Starting RtAudioStream " << _rtAudio << " with " << unsigned(channels) << " channels, sample rate " << sampleRate << std::endl;
+        std::cout << "Starting RtAudioStream with " << unsigned(channels) << " channels, sample rate " << sampleRate << std::endl;
 #endif
 
         _container = new AudioCallbackContainer();

@@ -6,7 +6,6 @@ project(node_audio LANGUAGES CXX VERSION 1.0.0)
 cmake_minimum_required(VERSION 3.7)
 
 if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
-    # Build type is not set eg. command was "cmake .."
     message(STATUS "  Diag: Build type was unspecified, set to Release")
     set(CMAKE_BUILD_TYPE Release)
 else ()
@@ -25,8 +24,6 @@ if (MAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /experimental:external /external:W0 ")
     set(CMAKE_INCLUDE_SYSTEM_FLAG_CXX "/external:I ")
 endif()
-
-set(CMAKE_BUILD_TYPE Release)
 
 include(NodeJS.cmake)
 nodejs_init()
