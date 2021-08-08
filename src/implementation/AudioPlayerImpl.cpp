@@ -347,6 +347,7 @@ namespace CasperTech
                         }
                         evt->completionEvent(CommandResult::Success, "");
                     }
+                    break;
                 }
                 case Command::Stop:
                 {

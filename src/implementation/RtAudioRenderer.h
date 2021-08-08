@@ -33,7 +33,7 @@ namespace CasperTech
             /* </IAudioNode> */
 
             /* <IAudioSink> */
-            void audio(void* buffer, uint64_t sampleCount) override;
+            void audio(uint8_t* buffer, uint64_t sampleCount) override;
             void onSourceConfigured() override;
             void onEos() override;
             /* </IAudioSink> */

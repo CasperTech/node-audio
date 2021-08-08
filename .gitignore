@@ -1,6 +1,7 @@
 .idea/workspace.xml
 .idea/usage.statistics.xml
 .idea/tasks.xml
+build-vs/
 /node_modules
 /cmake-build-debug
 /cmake-build-release

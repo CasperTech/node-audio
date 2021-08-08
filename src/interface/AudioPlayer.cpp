@@ -72,7 +72,7 @@ namespace CasperTech::interface
         {
             throw Napi::Error::New(env, "Must supply a seek time in milliseconds");
         }
-        int64_t ms = info[0].As<Napi::Number>().DoubleValue();
+        int64_t ms = info[0].As<Napi::Number>().Int64Value();
         auto worker = new CommandWorker(info.Env(), deferred, [this, ms](const ResultCallback& callback)
         {
             _audioPlayer->seek(callback, ms);

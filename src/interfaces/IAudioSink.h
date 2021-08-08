@@ -10,7 +10,7 @@ namespace CasperTech
         public:
             virtual ~IAudioSink() = default;
             virtual void setSource(const std::shared_ptr<IAudioSource>& source, SampleFormatFlags fmt, uint32_t sampleRate, uint8_t channels);
-            virtual void audio(void* buffer, uint64_t sampleCount) = 0;
+            virtual void audio(uint8_t* buffer, uint64_t sampleCount) = 0;
             virtual void onSourceConfigured(){}
             virtual void onEos() = 0;
 

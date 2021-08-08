@@ -98,13 +98,13 @@ namespace CasperTech
             if (destBufPos + bytesToWrite > _maxSize)
             {
                 size_t bytesRemaining = _maxSize - destBufPos;
-                memcpy(&_buf[destBufPos], &buf[srcBufPos], bytesRemaining);
+                memcpy(&_buf[destBufPos], buf + srcBufPos, bytesRemaining);
                 destBufPos = 0;
                 srcBufPos += bytesRemaining;
                 bytesLeft -= bytesRemaining;
                 bytesToWrite -= bytesRemaining;
             }
-            memcpy(&_buf[destBufPos], &buf[srcBufPos], bytesToWrite);
+            memcpy(&_buf[destBufPos], buf + srcBufPos, bytesToWrite);
             destBufPos += bytesToWrite;
             if (destBufPos >= _maxSize)
             {
