@@ -101,10 +101,7 @@ namespace CasperTech
         checkError(av_frame_get_buffer(_frame, 0));
 
        
-        //av_samples_copy(&_frame->extended_data[0], const_cast<uint8_t*const*>(&buffer), 0, 0, static_cast<int>(sampleCount), _sourceChannels, _avSampleFormat);
-        
-        int bufSize = _sampleSize * _sourceChannels * static_cast<int>(sampleCount);
-        memcpy_s(_frame->extended_data[0], bufSize, buffer, bufSize);
+        av_samples_copy(&_frame->extended_data[0], const_cast<uint8_t*const*>(&buffer), 0, 0, static_cast<int>(sampleCount), _sourceChannels, _avSampleFormat);
         
         _pts += _sourceSampleRate;
 
