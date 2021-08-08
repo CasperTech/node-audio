@@ -5,6 +5,14 @@ endif (POLICY CMP0048)
 project(node_audio LANGUAGES CXX VERSION 1.0.0)
 cmake_minimum_required(VERSION 3.7)
 
+if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
+    # Build type is not set eg. command was "cmake .."
+    message(STATUS "  Diag: Build type was unspecified, set to Release")
+    set(CMAKE_BUILD_TYPE Release)
+else ()
+    message(STATUS "  Diag: Build type specified as '${CMAKE_BUILD_TYPE}'")
+endif ()
+
 set(CMAKE_CXX_STANDARD 17)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
@@ -141,6 +149,11 @@ add_nodejs_module(${PROJECT_NAME}
         ${LIB_FILES}
 )
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
+if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC _DEBUG)
+else ()
+    target_compile_definitions(${PROJECT_NAME} PUBLIC _NDEBUG)
+endif ()
 
 add_subdirectory(lib/rtaudio)
 
