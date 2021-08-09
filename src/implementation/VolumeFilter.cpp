@@ -225,7 +225,6 @@ namespace CasperTech
         av_get_channel_layout_string(reinterpret_cast<char*>(ch_layout), sizeof(ch_layout), 0, _avChannelLayout);
         av_opt_set(_aBufferCtx, "channel_layout", reinterpret_cast<const char*>(ch_layout), AV_OPT_SEARCH_CHILDREN);
         _avSampleFormat = getAvSampleFormat(_sourceFormat);
-        std::cout << av_get_sample_fmt_name(_avSampleFormat) << std::endl;
         av_opt_set(_aBufferCtx, "sample_fmt", av_get_sample_fmt_name(_avSampleFormat),
                    AV_OPT_SEARCH_CHILDREN);
         av_opt_set_q(_aBufferCtx, "time_base", AVRational{1, static_cast<int>(_sourceSampleRate)},

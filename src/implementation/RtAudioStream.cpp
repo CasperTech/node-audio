@@ -81,7 +81,9 @@ namespace CasperTech
             try
             {
                 info = _rtAudio->getDeviceInfo(i);
-                // std::cout << "Checking " << info.name << ", " << info.outputChannels << " output channels" << std::endl;
+#ifdef _DEBUG
+                std::cout << "Searching for default devie: Checking " << info.name << ", " << info.outputChannels << " output channels" << std::endl;
+#endif
                 if (info.isDefaultOutput && info.outputChannels > 0)
                 {
                     _selectedDevice = info;
@@ -94,7 +96,9 @@ namespace CasperTech
 
             }
         }
+#ifdef _DEBUG
         std::cout << "No suitable default device found!" << std::endl;
+#endif
     }
 
     int RtAudioStream::fillBufferStatic(void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames,
@@ -121,7 +125,9 @@ namespace CasperTech
         uint64_t bytesToCopy = nBufferFrames * _sampleSize *  _sourceChannels;
         if (_ringBuffer->get(reinterpret_cast<uint8_t*>(outputBuffer), bytesToCopy))
         {
+#ifdef _DEBUG
             std::cout << "RingBuffer shutdown" << std::endl;
+#endif
             return 1;
         }
         return 0;

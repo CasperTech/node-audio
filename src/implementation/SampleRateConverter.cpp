@@ -119,7 +119,9 @@ namespace CasperTech
         _srcFormat = getSwrSampleFormat(_sourceFormat);
         _destFormat = getSwrSampleFormat(_sinkFormat);
 
-        // std::cout << "Converting from " << _sourceFormat << " " << _sourceSampleRate << " to " << _sinkFormat << " " << _sinkSampleRate << std::endl;
+#ifdef _DEBUG
+         std::cout << "SWR Converting from " << _sourceFormat << " " << _sourceSampleRate << " to " << _sinkFormat << " " << _sinkSampleRate << std::endl;
+#endif
 
         auto srcLayout = av_get_default_channel_layout(_sourceChannels);
         av_opt_set_int(_swrCtx, "in_channel_layout", srcLayout, 0);
@@ -132,7 +134,6 @@ namespace CasperTech
 
         checkError(swr_init(_swrCtx));
         _configured = true;
-        // std::cout << "SwrConfigured" << std::endl;
     }
 
     AVSampleFormat SampleRateConverter::getSwrSampleFormat(SampleFormatFlags sampleFormat)
@@ -204,7 +205,9 @@ namespace CasperTech
         }
         else
         {
+#ifdef _DEBUG
             std::cout << _source->getName() << " connected to " << getName();
+#endif
         }
     }
 

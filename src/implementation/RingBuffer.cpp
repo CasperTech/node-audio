@@ -84,7 +84,9 @@ namespace CasperTech
             }
             if (_shutdown)
             {
+#ifdef _DEBUG
                 std::cout << "shutdown" << std::endl;
+#endif
                 return;
             }
 
@@ -140,7 +142,9 @@ namespace CasperTech
             }
             if (_shutdown)
             {
+#ifdef _DEBUG
                 std::cout << "shutdown" << std::endl;
+#endif
                 return 1;
             }
 

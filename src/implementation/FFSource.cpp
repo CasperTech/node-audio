@@ -71,7 +71,6 @@ namespace CasperTech
     {
         if (_fmtCtx == nullptr)
         {
-            std::cout << "fmtCtx -1" << std::endl;
             return -1;
         }
 
@@ -116,12 +115,13 @@ namespace CasperTech
                 // PROCESS AUDIO
                 if(_sink)
                 {
-                    // std::cout << "Sending audio" << std::endl;
                     _sink->audio(frame->frame->extended_data[0], frame->frame->extended_data[1], frame->frame->nb_samples);
                 }
                 else
                 {
+#ifdef _DEBUG
                     std::cout << "No sink" << std::endl;
+#endif
                 }
 
                 av_frame_unref(frame->frame);

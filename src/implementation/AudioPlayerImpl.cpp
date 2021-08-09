@@ -40,7 +40,9 @@ namespace CasperTech
 
     AudioPlayerImpl::~AudioPlayerImpl()
     {
+#ifdef _DEBUG
         std::cout << "Destructing AudiPlayerImpl" << std::endl;
+#endif
         {
             std::unique_lock<std::mutex> commandLock(_eventThreadMutex);
             _running = false;
@@ -68,8 +70,9 @@ namespace CasperTech
         {
             _controlThread.join();
         }
-
+#ifdef _DEBUG
         std::cout << "Done destructing AudioPlayerIMpl" << std::endl;
+#endif
     }
 
     void AudioPlayerImpl::controlThreadFunc()
@@ -121,7 +124,9 @@ namespace CasperTech
                             }
 
                             _playThreadRunning = false;
-                            // std::cout << "Playthread done " << std::endl;
+#ifdef _DEBUG
+                            std::cout << "Playthread done " << std::endl;
+#endif
                             _readerState = PlayerState::Loaded;
                             _state = PlayerState::Loaded;
                             break;
