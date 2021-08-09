@@ -101,14 +101,17 @@ namespace CasperTech
                                         double streamTime, RtAudioStreamStatus status, void* data)
     {
         auto container = static_cast<AudioCallbackContainer*>(data);
-        std::unique_lock<std::mutex> lk(container->containerMutex);
-        auto renderer = container->rtAudioStream;
-        if (!renderer)
+        RtAudioStream* stream = nullptr;
         {
-            delete container;
-            return 2;
+            std::unique_lock<std::mutex> lk(container->containerMutex);
+            auto stream = container->rtAudioStream;
+            if (!stream)
+            {
+                delete container;
+                return 2;
+            }
         }
-        return renderer->fillBuffer(outputBuffer, inputBuffer, nBufferFrames, streamTime, status);
+        return stream->fillBuffer(outputBuffer, inputBuffer, nBufferFrames, streamTime, status);
     }
 
     int RtAudioStream::fillBuffer(void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames, double streamTime,
