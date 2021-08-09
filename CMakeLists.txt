@@ -147,9 +147,10 @@ add_nodejs_module(${PROJECT_NAME}
 )
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
-    target_compile_definitions(${PROJECT_NAME} PUBLIC _DEBUG)
+    add_compile_definitions(-D_DEBUG)
+
 else ()
-    target_compile_definitions(${PROJECT_NAME} PUBLIC _NDEBUG)
+    add_compile_definitions(-D_NDEBUG)
 endif ()
 
 add_subdirectory(lib/rtaudio)
