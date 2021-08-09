@@ -104,7 +104,7 @@ namespace CasperTech
         RtAudioStream* stream = nullptr;
         {
             std::unique_lock<std::mutex> lk(container->containerMutex);
-            auto stream = container->rtAudioStream;
+            stream = container->rtAudioStream;
             if (!stream)
             {
                 delete container;
