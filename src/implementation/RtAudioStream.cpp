@@ -17,10 +17,10 @@ namespace CasperTech
         {
             std::unique_lock<std::mutex> lk(_container->containerMutex);
             _container->rtAudioStream = nullptr;
+            _ringBuffer->shutdown();
         }
-        std::unique_lock<std::mutex> _fillBufferMutex;
-        _ringBuffer->shutdown();
-        if(_rtAudio->isStreamRunning())
+
+        if (_rtAudio->isStreamRunning())
         {
 #ifdef _DEBUG
             std::cout << "Aborting Stream " << std::endl;
@@ -34,9 +34,11 @@ namespace CasperTech
 #endif
             _rtAudio->closeStream();
         }
-#ifdef _DEBUG
-        std::cout << "RtAudioStreamDestroyed " << std::endl;
-#endif
+        if (_container != nullptr)
+        {
+            delete _container;
+            _container = nullptr;
+        }
     }
 
     std::map<uint32_t, std::string> RtAudioStream::getDevices()
@@ -111,11 +113,26 @@ namespace CasperTech
             stream = container->rtAudioStream;
             if (!stream)
             {
-                delete container;
-                return 2;
+                return 0;
             }
         }
-        return stream->fillBuffer(outputBuffer, inputBuffer, nBufferFrames, streamTime, status);
+        int result = stream->fillBuffer(outputBuffer, inputBuffer, nBufferFrames, streamTime, status);
+        if (result == 1)
+        {
+            {
+                std::unique_lock<std::mutex> lk(container->containerMutex);
+                stream = container->rtAudioStream;
+                if (!stream)
+                {
+                    return 0;
+                }
+                else
+                {
+                    container->bufferDone = 1;
+                }
+            }
+        }
+        return 0;
     }
 
     int RtAudioStream::fillBuffer(void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames, double streamTime,

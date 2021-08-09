@@ -16,7 +16,10 @@ class EventReceiver: public CasperTech::IAudioPlayerEventReceiver
 {
         void onPlayerEvent(const std::shared_ptr<CasperTech::PlayerEvent>& event) override
         {
-
+            if (event->eventType != EventType::Command)
+            {
+                std::cout << "Got event " << unsigned(event->eventType) << std::endl;
+            }
         }
 };
 
@@ -32,7 +35,7 @@ int main()
     auto recv = new EventReceiver();
     auto player = std::make_shared<CasperTech::AudioPlayerImpl>(recv);
     std::cout << "Loading File" << std::endl;
-    player->load(R"(F:\queen.mp3)", &commandDone);
+    player->load(R"(C:\Projects\@caspertech\node-audio\media\piano.wav)", &commandDone);
     waitForCommand.wait(wait);
 
     std::cout << "Fileloaded. Seeking to 2 seconds" << std::endl;

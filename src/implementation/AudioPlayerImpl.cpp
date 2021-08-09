@@ -118,17 +118,9 @@ namespace CasperTech
                         case EventType::PlaybackFinished:
                         {
                             std::unique_lock<std::mutex> lk(_playThreadMutex);
-                            if(_playThread.joinable())
-                            {
-                                _playThread.join();
-                            }
-
-                            _playThreadRunning = false;
-#ifdef _DEBUG
-                            std::cout << "Playthread done " << std::endl;
-#endif
-                            _readerState = PlayerState::Loaded;
-                            _state = PlayerState::Loaded;
+                            
+                            _readerState = PlayerState::Paused;
+                            _state = PlayerState::Paused;
                             break;
                         }
                         case EventType::PlaybackError:
@@ -287,6 +279,7 @@ namespace CasperTech
             if (result == 0)
             {
                 _readerState = PlayerState::Paused;
+                addEvent(std::make_shared<PlaybackFinishedEvent>());
             }
         }
         if (result < 0)
@@ -296,7 +289,6 @@ namespace CasperTech
             return;
         }
         _loadedFile->eos();
-        addEvent(std::make_shared<PlaybackFinishedEvent>());
         _commandWaiting = false;
     }
 
@@ -420,6 +412,7 @@ namespace CasperTech
                             _playThread.join();
                             _playThreadRunning = false;
                         }
+
                         evt->completionEvent(CommandResult::Success, "");
                     }
                     break;

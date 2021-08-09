@@ -15,10 +15,13 @@ namespace CasperTech
 
     void RingBuffer::reset()
     {
+        shutdown();
+        
         std::lock_guard<std::mutex> lock(_mutex);
         _head = _tail;
         _eos = -1;
-        _shutdown = false;
+        _shutdownGet = false;
+        _shutdownPut = false;
         _full = false;
     }
 
@@ -34,8 +37,20 @@ namespace CasperTech
 
     void RingBuffer::shutdown()
     {
-        _shutdown = true;
-        _wait.notify_one();
+        std::unique_lock<std::mutex> shutdownGetLock(_shutdownGetMutex);
+        std::unique_lock<std::mutex> shutdownPutLock(_shutdownPutMutex);
+        if (_runningPut)
+        {
+            _shutdownPut = true;
+            _wait.notify_all();
+            _shutdownPutWait.wait(shutdownPutLock);
+        }
+        if (_runningGet)
+        {
+            _shutdownGet = true;
+            _wait.notify_all();
+            _shutdownGetWait.wait(shutdownGetLock);
+        }
     }
 
     size_t RingBuffer::capacity() const
@@ -64,6 +79,10 @@ namespace CasperTech
 
     void RingBuffer::put(const uint8_t* buf, size_t bytes)
     {
+        {
+            std::unique_lock<std::mutex> lk(_shutdownPutMutex);
+            _runningPut = true;
+        }
         _eos = -1;
         if (bytes == 0)
         {
@@ -75,19 +94,19 @@ namespace CasperTech
         size_t bytesLeft = bytes;
         while(srcBufPos < bytes)
         {
-            while(_full && !_shutdown)
+            while(_full && !_shutdownPut)
             {
                 _wait.wait(lock, [this]
                 {
-                    return !_full || _shutdown;
+                    return !_full || _shutdownPut;
                 });
             }
-            if (_shutdown)
+            if (_shutdownPut)
             {
 #ifdef _DEBUG
                 std::cout << "shutdown" << std::endl;
 #endif
-                return;
+                break;
             }
 
             size_t space = _maxSize - size();
@@ -119,10 +138,20 @@ namespace CasperTech
             _full = _head == _tail;
             _wait.notify_one();
         }
+        std::unique_lock<std::mutex> lk(_shutdownPutMutex);
+        _runningPut = false;
+        if (_shutdownPut)
+        {
+            _shutdownPutWait.notify_all();
+        }
     }
 
     int RingBuffer::get(uint8_t* buf, size_t bytes)
     {
+        {
+            std::unique_lock<std::mutex> lk(_shutdownGetMutex);
+            _runningGet = true;
+        }
         if (bytes == 0)
         {
             return 0;
@@ -133,19 +162,19 @@ namespace CasperTech
         size_t bytesLeft = bytes;
         while(destBufPos < bytes)
         {
-            while(size() == 0 && !_shutdown)
+            while(size() == 0 && !_shutdownGet)
             {
                 _wait.wait(lock, [this]
                 {
-                    return size() > 0 || _shutdown;
+                    return size() > 0 || _shutdownGet;
                 });
             }
-            if (_shutdown)
+            if (_shutdownGet)
             {
 #ifdef _DEBUG
                 std::cout << "shutdown" << std::endl;
 #endif
-                return 1;
+                break;
             }
 
             size_t bytesToWrite = size();
@@ -173,12 +202,19 @@ namespace CasperTech
             _tail = srcBufPos;
             if (_eos > -1 && _eos == _tail)
             {
-                _shutdown = true;
+                _shutdownGet = true;
                 _wait.notify_one();
                 return 1;
             }
             _full = false;
             _wait.notify_one();
+        }
+        std::unique_lock<std::mutex> lk(_shutdownGetMutex);
+        _runningGet = false;
+        if (_shutdownGet)
+        {
+            _shutdownGetWait.notify_all();
+            return 1;
         }
         return 0;
     }

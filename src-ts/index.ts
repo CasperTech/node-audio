@@ -36,6 +36,11 @@ export class AudioPlayer
         return this.player.stop();
     }
 
+    public setVolume(volume: number): Promise<void>
+    {
+        return this.player.setVolume(volume);
+    }
+
     public setEventCallback(cb: (event: PlaybackEvent, msg: string) => void)
     {
         this.player.setEventCallback(cb);

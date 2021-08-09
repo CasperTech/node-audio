@@ -10,5 +10,6 @@ namespace CasperTech
 	public:
 		std::mutex containerMutex;
 		RtAudioStream* rtAudioStream;
+		int bufferDone = 0;
 	};
 }

@@ -7,5 +7,6 @@ export declare class AudioPlayer {
     pause(): Promise<void>;
     seek(ms: number): Promise<void>;
     stop(): Promise<void>;
+    setVolume(volume: number): Promise<void>;
     setEventCallback(cb: (event: PlaybackEvent, msg: string) => void): void;
 }

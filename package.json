@@ -1,6 +1,6 @@
 {
   "name": "@caspertech/node-audio",
-  "version": "0.0.10",
+  "version": "0.0.13",
   "description": "",
   "main": "index.js",
   "scripts": {

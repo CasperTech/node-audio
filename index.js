@@ -21,6 +21,9 @@ class AudioPlayer {
     stop() {
         return this.player.stop();
     }
+    setVolume(volume) {
+        return this.player.setVolume(volume);
+    }
     setEventCallback(cb) {
         this.player.setEventCallback(cb);
     }
