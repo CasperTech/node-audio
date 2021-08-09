@@ -146,11 +146,12 @@ add_nodejs_module(${PROJECT_NAME}
         ${LIB_FILES}
 )
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
+
 if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
-    add_compile_definitions(-D_DEBUG)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE _DEBUG=1)
 
 else ()
-    add_compile_definitions(-D_NDEBUG)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE _NDEBUG=1)
 endif ()
 
 add_subdirectory(lib/rtaudio)
@@ -175,6 +176,13 @@ target_include_directories(${PROJECT_NAME} PUBLIC src)
 target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBRARIES} rtaudio ${PLATFORM_LIBRARIES})
 
 add_executable(Test test.cpp ${LIB_FILES})
+if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
+    target_compile_definitions(Test PRIVATE _DEBUG=1)
+
+else ()
+    target_compile_definitions(Test PRIVATE _NDEBUG=1)
+endif ()
+
 target_include_directories(Test PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src)
 target_include_directories(Test SYSTEM PRIVATE ${FFMPEG_INCLUDE_DIRS}  ${CMAKE_CURRENT_LIST_DIR}/lib/rtaudio)
 target_link_libraries(Test ${FFMPEG_LIBRARIES} rtaudio)
