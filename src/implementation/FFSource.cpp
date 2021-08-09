@@ -117,7 +117,7 @@ namespace CasperTech
                 if(_sink)
                 {
                     // std::cout << "Sending audio" << std::endl;
-                    _sink->audio(frame->frame->extended_data[0], frame->frame->nb_samples);
+                    _sink->audio(frame->frame->extended_data[0], frame->frame->extended_data[1], frame->frame->nb_samples);
                 }
                 else
                 {

@@ -32,7 +32,7 @@ int main()
     auto recv = new EventReceiver();
     auto player = std::make_shared<CasperTech::AudioPlayerImpl>(recv);
     std::cout << "Loading File" << std::endl;
-    player->load(R"(C:\Users\Tom\Downloads\test.wav)", &commandDone);
+    player->load(R"(F:\queen.mp3)", &commandDone);
     waitForCommand.wait(wait);
 
     std::cout << "Fileloaded. Seeking to 2 seconds" << std::endl;

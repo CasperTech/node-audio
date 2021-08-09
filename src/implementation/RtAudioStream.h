@@ -21,7 +21,7 @@ namespace CasperTech
             void selectDevice(uint32_t device);
             void selectDefaultDevice();
             void onEos();
-            void audio(const uint8_t* buffer, uint64_t sampleCount);
+            void audio(const uint8_t* buffer, const uint8_t* planarChannel, uint64_t sampleCount);
             void configure(RtAudioFormat fmt, uint8_t channels, uint32_t sampleRate, uint8_t sampleSize, uint32_t bufFrames, uint32_t bufSize);
             [[nodiscard]] SampleFormatFlags getSupportedSampleFormats() const;
             [[nodiscard]] std::vector<uint32_t> getSupportedSampleRates() const;

@@ -60,9 +60,8 @@ namespace CasperTech
         return 2;
     }
 
-    void SampleRateConverter::audio(const uint8_t* buffer, uint64_t sampleCount)
+    void SampleRateConverter::audio(const uint8_t* buffer, const uint8_t* planarChannel, uint64_t sampleCount)
     {
-        //std::cout << "Audio " << sampleCount << " samples" << std::endl;
         if(!_configured)
         {
             throw AudioException(AudioError::PipelineError, "Sink or source not yet set");
@@ -77,10 +76,24 @@ namespace CasperTech
             checkError(av_samples_alloc(reinterpret_cast<uint8_t**>(&_dstData), &_dstLineSize, _sinkChannels, static_cast<int>(dst_nb_samples), _destFormat, 1));
             _maxDstSamples = dst_nb_samples;
         }
-        int samplesConverted = checkError(swr_convert(_swrCtx, reinterpret_cast<uint8_t**>(&_dstData), static_cast<int>(dst_nb_samples), const_cast<const uint8_t**>(&buffer), static_cast<int>(sampleCount)));
+
+        int samplesConverted = 0;
+        if (planarChannel != nullptr)
+        {
+            const uint8_t* container[2] = {
+                buffer,
+                planarChannel
+            };
+            samplesConverted = checkError(swr_convert(_swrCtx, reinterpret_cast<uint8_t**>(&_dstData), static_cast<int>(dst_nb_samples), container, static_cast<int>(sampleCount)));
+        }
+        else
+        {
+            samplesConverted = checkError(swr_convert(_swrCtx, reinterpret_cast<uint8_t**>(&_dstData), static_cast<int>(dst_nb_samples), const_cast<const uint8_t**>(&buffer), static_cast<int>(sampleCount)));
+        }
+
         if (_sink)
         {
-            _sink->audio(reinterpret_cast<uint8_t*>(&_dstData[0]), samplesConverted);
+            _sink->audio(reinterpret_cast<uint8_t*>(&_dstData[0]), nullptr, samplesConverted);
         }
     }
 

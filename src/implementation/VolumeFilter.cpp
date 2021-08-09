@@ -89,7 +89,7 @@ namespace CasperTech
         return 2;
     }
 
-    void VolumeFilter::audio(const uint8_t* buffer, uint64_t sampleCount)
+    void VolumeFilter::audio(const uint8_t* buffer, const uint8_t* planarChannel, uint64_t sampleCount)
     {
         std::unique_lock<std::mutex> lk(_pipelineMutex);
         _frame->nb_samples = static_cast<int>(sampleCount);
@@ -101,20 +101,36 @@ namespace CasperTech
         checkError(av_frame_get_buffer(_frame, 0));
 
        
-        av_samples_copy(&_frame->extended_data[0], const_cast<uint8_t*const*>(&buffer), 0, 0, static_cast<int>(sampleCount), _sourceChannels, _avSampleFormat);
+        int bps = av_get_bytes_per_sample(_avSampleFormat);
+        if (bps != _sampleSize)
+        {
+            assert(false);
+        }
+
+
+        _frame->extended_data[0] = const_cast<uint8_t*>(buffer);
+        _frame->extended_data[1] = const_cast<uint8_t*>(planarChannel);
+        
+        if (planarChannel != nullptr)
+        {
+            av_samples_copy(&_frame->extended_data[0], const_cast<uint8_t* const*>(&buffer), 0, 0, static_cast<int>(sampleCount), 1, _avSampleFormat);
+            av_samples_copy(&_frame->extended_data[1], const_cast<uint8_t* const*>(&planarChannel), 0, 0, static_cast<int>(sampleCount), 1, _avSampleFormat);
+        }
+        else
+        {
+            av_samples_copy(&_frame->extended_data[0], const_cast<uint8_t* const*>(&buffer), 0, 0, static_cast<int>(sampleCount), _sourceChannels, _avSampleFormat);
+        }
+        
         
         _pts += _sourceSampleRate;
-
-        float* tmpFloat = reinterpret_cast<float*>(_frame->extended_data[0]);
-
+        
         checkError(av_buffersrc_add_frame(_aBufferCtx, _frame));
         int err = 0;
         while ((err = av_buffersink_get_frame(_aBufferSinkCtx, _frame)) >= 0)
         {
-            float* newFloat = reinterpret_cast<float*>(_frame->extended_data[0]);
             if (_sink)
             {
-                _sink->audio(_frame->extended_data[0], _frame->nb_samples);
+                _sink->audio(_frame->extended_data[0], _frame->extended_data[1], _frame->nb_samples);
             }
             av_frame_unref(_frame);
             checkError(err);
@@ -209,6 +225,7 @@ namespace CasperTech
         av_get_channel_layout_string(reinterpret_cast<char*>(ch_layout), sizeof(ch_layout), 0, _avChannelLayout);
         av_opt_set(_aBufferCtx, "channel_layout", reinterpret_cast<const char*>(ch_layout), AV_OPT_SEARCH_CHILDREN);
         _avSampleFormat = getAvSampleFormat(_sourceFormat);
+        std::cout << av_get_sample_fmt_name(_avSampleFormat) << std::endl;
         av_opt_set(_aBufferCtx, "sample_fmt", av_get_sample_fmt_name(_avSampleFormat),
                    AV_OPT_SEARCH_CHILDREN);
         av_opt_set_q(_aBufferCtx, "time_base", AVRational{1, static_cast<int>(_sourceSampleRate)},
@@ -236,8 +253,22 @@ namespace CasperTech
         }
 
         std::string vol = std::to_string(_volume);
-        int err = av_opt_set(_volumeCtx, "volume", vol.c_str(), AV_OPT_SEARCH_CHILDREN);
-        checkError(err);
+        checkError(av_opt_set(_volumeCtx, "volume", vol.c_str(), AV_OPT_SEARCH_CHILDREN));
+        switch (_avSampleFormat)
+        {
+            case AV_SAMPLE_FMT_DBL:
+            case AV_SAMPLE_FMT_DBLP:
+                checkError(av_opt_set(_volumeCtx, "precision", "double", AV_OPT_SEARCH_CHILDREN));
+                break;
+            case AV_SAMPLE_FMT_FLT:
+            case AV_SAMPLE_FMT_FLTP:
+                checkError(av_opt_set(_volumeCtx, "precision", "float", AV_OPT_SEARCH_CHILDREN));
+                break;
+            default:
+                checkError(av_opt_set(_volumeCtx, "precision", "fixed", AV_OPT_SEARCH_CHILDREN));
+                break;
+        }
+        
 
 
         checkError(avfilter_init_str(_volumeCtx, NULL));
@@ -260,6 +291,20 @@ namespace CasperTech
         checkError(avfilter_link(_volumeCtx, 0, _aBufferSinkCtx, 0));
 
         avfilter_graph_config(_filterGraph, NULL);
+    }
+
+    bool VolumeFilter::isPlanar(int fmt)
+    {
+        switch (fmt)
+        {
+        case AV_SAMPLE_FMT_DBLP:
+        case AV_SAMPLE_FMT_FLTP:
+        case AV_SAMPLE_FMT_S16P:
+        case AV_SAMPLE_FMT_S32P:
+        case AV_SAMPLE_FMT_S64P:
+            return true;
+        }
+        return false;
     }
 
     AVSampleFormat VolumeFilter::getAvSampleFormat(SampleFormatFlags sampleFormat)

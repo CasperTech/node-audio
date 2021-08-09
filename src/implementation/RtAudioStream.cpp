@@ -173,7 +173,7 @@ namespace CasperTech
         return static_cast<uint8_t>(_selectedDevice.outputChannels);
     }
 
-    void RtAudioStream::audio(const uint8_t* buffer, uint64_t sampleCount)
+    void RtAudioStream::audio(const uint8_t* buffer, const uint8_t* planarChnanel, uint64_t sampleCount)
     {
         uint64_t byteSize = sampleCount * _sampleSize * _sourceChannels;
         _ringBuffer->put(buffer, byteSize);

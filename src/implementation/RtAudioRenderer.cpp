@@ -40,10 +40,10 @@ namespace CasperTech
         return _currentStream->getSupportedChannels();
     }
 
-    void RtAudioRenderer::audio(const uint8_t* buffer, uint64_t sampleCount)
+    void RtAudioRenderer::audio(const uint8_t* buffer, const uint8_t* planarChannel, uint64_t sampleCount)
     {
         std::shared_lock<std::shared_mutex> lk(_streamMutex);
-        return _currentStream->audio(buffer, sampleCount);
+        return _currentStream->audio(buffer, planarChannel, sampleCount);
     }
 
     void RtAudioRenderer::onSourceConfigured()
