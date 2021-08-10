@@ -106,16 +106,24 @@ namespace CasperTech
     {
         if (_dstData)
         {
-            av_freep(&_dstData[0]);
+            //av_freep(&_dstData[0]);
         }
         av_freep(&_dstData);
-
+        if (_inited)
+        {
+            swr_close(_swrCtx);
+        }
         swr_free(&_swrCtx);
         _swrCtx = nullptr;
     }
 
     void SampleRateConverter::init()
     {
+        if (_inited)
+        {
+            swr_close(_swrCtx);
+        }
+        _inited = true;
         _srcFormat = getSwrSampleFormat(_sourceFormat);
         _destFormat = getSwrSampleFormat(_sinkFormat);
 

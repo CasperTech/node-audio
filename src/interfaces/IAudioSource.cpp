@@ -87,6 +87,12 @@ namespace CasperTech
         onSinkConfigured();
     }
 
+    void IAudioSource::disconnectSink()
+    {
+        _sink->disconnectSource();
+        _sink.reset();
+    }
+
     void IAudioSource::eos()
     {
         if (_sink)

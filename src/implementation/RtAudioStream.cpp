@@ -13,32 +13,7 @@ namespace CasperTech
 
     RtAudioStream::~RtAudioStream()
     {
-        if (_container != nullptr)
-        {
-            std::unique_lock<std::mutex> lk(_container->containerMutex);
-            _container->rtAudioStream = nullptr;
-            _ringBuffer->shutdown();
-        }
-
-        if (_rtAudio->isStreamRunning())
-        {
-#ifdef _DEBUG
-            std::cout << "Aborting Stream " << std::endl;
-#endif
-            _rtAudio->abortStream();
-        }
-        if (_rtAudio->isStreamOpen())
-        {
-#ifdef _DEBUG
-            std::cout << "Closing Stream " << std::endl;
-#endif
-            _rtAudio->closeStream();
-        }
-        if (_container != nullptr)
-        {
-            delete _container;
-            _container = nullptr;
-        }
+        shutdown();
     }
 
     std::map<uint32_t, std::string> RtAudioStream::getDevices()
@@ -203,6 +178,36 @@ namespace CasperTech
 
     }
 
+    void RtAudioStream::shutdown()
+    {
+        if (_container != nullptr)
+        {
+            std::unique_lock<std::mutex> lk(_container->containerMutex);
+            _container->rtAudioStream = nullptr;
+            _ringBuffer->shutdown();
+        }
+
+        if (_rtAudio->isStreamRunning())
+        {
+#ifdef _DEBUG
+            std::cout << "Aborting Stream " << std::endl;
+#endif
+            _rtAudio->abortStream();
+        }
+        if (_rtAudio->isStreamOpen())
+        {
+#ifdef _DEBUG
+            std::cout << "Closing Stream " << std::endl;
+#endif
+            _rtAudio->closeStream();
+        }
+        if (_container != nullptr)
+        {
+            delete _container;
+            _container = nullptr;
+        }
+    }
+
     void RtAudioStream::configure(RtAudioFormat fmt, uint8_t channels, uint32_t sampleRate, uint8_t sampleSize,
                                   uint32_t bufFrames, uint32_t bufSize)
     {
@@ -212,12 +217,19 @@ namespace CasperTech
         params.deviceId = _selectedDeviceId;
         params.firstChannel = 0;
         params.nChannels = channels;
+
+        shutdown();
+        if (_container != nullptr)
+        {
+            _ringBuffer->shutdown();
+            delete _container;
+        }
+
         _ringBuffer = std::make_unique<RingBuffer>(bufSize);
         RtAudio::StreamOptions options;
 #ifdef _DEBUG
         std::cout << "Starting RtAudioStream with " << unsigned(channels) << " channels, sample rate " << sampleRate << std::endl;
 #endif
-
         _container = new AudioCallbackContainer();
         _container->rtAudioStream = this;
         _rtAudio->openStream(&params, nullptr, fmt, sampleRate, &bufFrames, &RtAudioStream::fillBufferStatic, _container, &options, nullptr);

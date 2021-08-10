@@ -14,4 +14,9 @@ namespace CasperTech
 
         onSourceConfigured();
     }
+
+    void IAudioSink::disconnectSource()
+    {
+        _source.reset();
+    }
 }

@@ -14,6 +14,7 @@ namespace CasperTech
         public:
             virtual ~IAudioSource() = default;
             virtual void connectSink(const std::shared_ptr<IAudioSink>& sink);
+            virtual void disconnectSink();
             virtual void onSinkConfigured(){};
             virtual void eos();
 

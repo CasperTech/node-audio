@@ -45,6 +45,7 @@ namespace CasperTech
         private:
             SwrContext* _swrCtx;
             bool _sinkConfigured = false;
+            bool _inited = false;
             bool _sourceConfigured = false;
             bool _configured = false;
             int64_t _maxDstSamples = 0;

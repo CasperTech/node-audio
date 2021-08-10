@@ -13,6 +13,7 @@ namespace CasperTech
             virtual void audio(const uint8_t* buffer, const uint8_t* planarChannel, uint64_t sampleCount) = 0;
             virtual void onSourceConfigured(){}
             virtual void onEos() = 0;
+            virtual void disconnectSource();
 
         protected:
             std::shared_ptr<IAudioSource> _source;

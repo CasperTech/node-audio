@@ -49,6 +49,8 @@ int main()
     waitForCommand.wait(wait);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    player.reset();
+    /*
     player->seek(0, &commandDone);
     waitForCommand.wait(wait);
 
@@ -62,8 +64,10 @@ int main()
     player->setVolume(0.1f, &commandDone);
     waitForCommand.wait(wait);
     std::cout << "Done" << std::endl;
+    */
     while (1)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
+
 }

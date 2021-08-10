@@ -61,11 +61,32 @@ namespace CasperTech
         {
             _pauseWait.notify_all();
         }
-        if(_playThread.joinable())
+        if (_playThread.joinable())
         {
             _playThread.join();
             _playThreadRunning = false;
         }
+
+        if (_audioRenderer)
+        {
+            _audioRenderer.reset();
+        }
+        if (_sampleRateConverter)
+        {
+            _sampleRateConverter->disconnectSink();
+            _sampleRateConverter.reset();
+        }
+        if (_volumeFilter)
+        {
+            _volumeFilter->disconnectSink();
+            _volumeFilter.reset();
+        }
+        if (_loadedFile)
+        {
+            _loadedFile->disconnectSink();
+            _loadedFile.reset();
+        }
+
         if(_controlThread.joinable())
         {
             _controlThread.join();
@@ -412,6 +433,19 @@ namespace CasperTech
                             _playThread.join();
                             _playThreadRunning = false;
                         }
+
+
+                        _audioRenderer.reset();
+                        _sampleRateConverter->disconnectSink();
+                        _sampleRateConverter.reset();
+                        _volumeFilter->disconnectSink();
+                        _volumeFilter.reset();
+                        _loadedFile->disconnectSink();
+                        _loadedFile.reset();
+
+                        _audioRenderer = std::make_shared<RtAudioRenderer>();
+                        _sampleRateConverter = std::make_shared<SampleRateConverter>();
+                        _volumeFilter = std::make_shared<VolumeFilter>();
 
                         evt->completionEvent(CommandResult::Success, "");
                     }
