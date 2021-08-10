@@ -29,6 +29,12 @@ include(NodeJS.cmake)
 nodejs_init()
 set(CMAKE_CXX_STANDARD 17)
 
+IF (UNIX AND NOT APPLE)
+	SET(RTAUDIO_API_ALSA OFF CACHE BOOL "Support ALSA Audio")
+	SET(RTAUDIO_API_PULSE ON CACHE BOOL "Support ALSA Audio")
+	add_definitions(-D__LINUX_PULSE__)
+endif()
+
 IF (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     # Finding ffmpeg on windows is a shitshow, so we just use precompiled libs
     set(FFMPEG_INCLUDE_DIRS ${CMAKE_CURRENT_LIST_DIR}/lib/ffmpeg/include)
