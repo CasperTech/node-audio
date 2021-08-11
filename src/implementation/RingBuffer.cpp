@@ -164,14 +164,17 @@ namespace CasperTech
         {
             if(size() == 0 && !_shutdownGet)
             {
-                memset(&buf[destBufPos], 0, bytes - destBufPos);
-                return 0;
+                {
+                    memset(&buf[destBufPos], 0, bytes - destBufPos);
+                    break;
+                }
             }
             if (_shutdownGet)
             {
 #ifdef _DEBUG
                 std::cout << "shutdown" << std::endl;
 #endif
+                _runningGet = false;
                 break;
             }
 

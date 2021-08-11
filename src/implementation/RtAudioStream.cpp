@@ -59,10 +59,13 @@ namespace CasperTech
             {
                 info = _rtAudio->getDeviceInfo(i);
 #ifdef _DEBUG
-                std::cout << "Searching for default devie: Checking " << info.name << ", " << info.outputChannels << " output channels" << std::endl;
+                std::cout << "Searching for default device: Checking " << info.name << ", " << info.outputChannels << " output channels" << std::endl;
 #endif
                 if (info.isDefaultOutput && info.outputChannels > 0)
                 {
+#ifdef _DEBUG
+                    std::cout << "Found default device: " << info.name << std::endl;
+#endif
                     _selectedDevice = info;
                     _selectedDeviceId = i;
                     return;
