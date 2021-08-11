@@ -6,17 +6,23 @@ namespace CasperTech
     std::map<uint32_t, std::string> RtAudioStream::devices;
     RtAudio::DeviceInfo RtAudioStream::defaultDevice;
     int RtAudioStream::defaultDeviceId = -1;
+    std::mutex RtAudioStream::rtAudioMutex;
 
     RtAudioStream::RtAudioStream()
         : _ringBuffer(std::make_unique<RingBuffer>(16384))
-        , _rtAudio(std::make_unique<RtAudio>())
     {
+        std::unique_lock<std::mutex> lk(rtAudioMutex);
+        _rtAudio = std::make_unique<RtAudio>();
         selectDefaultDevice();
     }
 
     RtAudioStream::~RtAudioStream()
     {
         shutdown();
+        {
+            std::unique_lock<std::mutex> lk(rtAudioMutex);
+            _rtAudio.reset();
+        }
     }
 
     std::map<uint32_t, std::string> RtAudioStream::getDevices()
