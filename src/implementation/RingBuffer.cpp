@@ -162,12 +162,10 @@ namespace CasperTech
         size_t bytesLeft = bytes;
         while(destBufPos < bytes)
         {
-            while(size() == 0 && !_shutdownGet)
+            if(size() == 0 && !_shutdownGet)
             {
-                _wait.wait(lock, [this]
-                {
-                    return size() > 0 || _shutdownGet;
-                });
+                memset(&buf[destBufPos], 0, bytes - destBufPos);
+                return 0;
             }
             if (_shutdownGet)
             {
