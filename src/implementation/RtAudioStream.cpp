@@ -3,6 +3,9 @@
 
 namespace CasperTech
 {
+    std::map<uint32_t, std::string> RtAudioStream::devices;
+    RtAudio::DeviceInfo RtAudioStream::defaultDevice;
+    int RtAudioStream::defaultDeviceId = -1;
 
     RtAudioStream::RtAudioStream()
         : _ringBuffer(std::make_unique<RingBuffer>(16384))
@@ -18,7 +21,11 @@ namespace CasperTech
 
     std::map<uint32_t, std::string> RtAudioStream::getDevices()
     {
-        std::map<uint32_t, std::string> devices;
+        if (!devices.empty())
+        {
+            return devices;
+        }
+        devices = {};
         uint32_t deviceCount = _rtAudio->getDeviceCount();
         RtAudio::DeviceInfo info;
         for(uint32_t i = 0; i < deviceCount; i++)
@@ -26,6 +33,13 @@ namespace CasperTech
             try
             {
                 info = _rtAudio->getDeviceInfo(i);
+                if (info.isDefaultOutput && info.outputChannels > 0)
+                {
+                    defaultDevice = info;
+                    defaultDeviceId = i;
+                    _selectedDevice = info;
+                    _selectedDeviceId = i;
+                }
                 devices[i] = info.name;
             }
             catch(RtAudioError&)
@@ -38,6 +52,12 @@ namespace CasperTech
 
     void RtAudioStream::selectDevice(uint32_t device)
     {
+        if (defaultDeviceId > -1 && device == defaultDeviceId)
+        {
+            _selectedDevice = defaultDevice;
+            _selectedDeviceId = defaultDeviceId;
+            return;
+        }
         try
         {
             _selectedDevice = _rtAudio->getDeviceInfo(device);
@@ -51,8 +71,15 @@ namespace CasperTech
 
     void RtAudioStream::selectDefaultDevice()
     {
+        if (defaultDeviceId > -1)
+        {
+            _selectedDevice = defaultDevice;
+            _selectedDeviceId = defaultDeviceId;
+            return;
+        }
         uint32_t deviceCount = _rtAudio->getDeviceCount();
         RtAudio::DeviceInfo info;
+        std::cout << "DeviceCount: " << deviceCount << std::endl;
         for(uint32_t i = 0; i < deviceCount; i++)
         {
             try
@@ -71,9 +98,9 @@ namespace CasperTech
                     return;
                 }
             }
-            catch(RtAudioError&)
+            catch(RtAudioError& e)
             {
-
+                std::cout << e.what() << std::endl << std::flush;
             }
         }
 #ifdef _DEBUG

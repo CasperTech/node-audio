@@ -33,6 +33,9 @@ namespace CasperTech
                                         double streamTime, RtAudioStreamStatus status, void *data);
             int fillBuffer(void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
                            double streamTime, RtAudioStreamStatus status);
+            static std::map<uint32_t, std::string> devices;
+            static RtAudio::DeviceInfo defaultDevice;
+            static int defaultDeviceId;
 
             int _selectedDeviceId = 0;
             std::unique_ptr<RtAudio> _rtAudio;
