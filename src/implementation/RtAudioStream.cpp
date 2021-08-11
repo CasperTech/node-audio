@@ -86,11 +86,18 @@ namespace CasperTech
         uint32_t deviceCount = _rtAudio->getDeviceCount();
         RtAudio::DeviceInfo info;
         std::cout << "DeviceCount: " << deviceCount << std::endl;
+        RtAudio::DeviceInfo firstDevice;
+        uint32_t firstDeviceIndex = -1;
         for(uint32_t i = 0; i < deviceCount; i++)
         {
             try
             {
                 info = _rtAudio->getDeviceInfo(i);
+                if (firstDeviceIndex == -1 && info.outputChannels > 0)
+                {
+                    firstDeviceIndex = i;
+                    firstDevice = info;
+                }
 #ifdef _DEBUG
                 std::cout << "Searching for default device: Checking " << info.name << ", " << info.outputChannels << " output channels" << std::endl;
 #endif
@@ -111,6 +118,15 @@ namespace CasperTech
                 std::cout << e.what() << std::endl << std::flush;
             }
         }
+        if (firstDeviceIndex > -1)
+        {
+            _selectedDevice = firstDevice;
+            _selectedDeviceId = firstDeviceIndex;
+            defaultDevice = firstDevice;
+            defaultDeviceId = firstDeviceIndex;
+            return;
+        }
+
 #ifdef _DEBUG
         std::cout << "No suitable default device found!" << std::endl;
 #endif
