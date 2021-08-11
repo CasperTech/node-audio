@@ -95,6 +95,8 @@ namespace CasperTech
 #endif
                     _selectedDevice = info;
                     _selectedDeviceId = i;
+                    defaultDeviceId = i;
+                    defaultDevice = info;
                     return;
                 }
             }

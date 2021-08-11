@@ -4,6 +4,7 @@
 #include <implementation/SampleRateConverter.h>
 #include <implementation/RtAudioRenderer.h>
 #include <implementation/AudioPlayerImpl.h>
+#include <structs/events/PlaybackErrorEvent.h>
 
 #include <thread>
 #include <mutex>
@@ -18,6 +19,11 @@ class EventReceiver: public CasperTech::IAudioPlayerEventReceiver
         {
             if (event->eventType != EventType::Command)
             {
+                if (event->eventType == EventType::PlaybackError)
+                {
+                    auto evt = std::static_pointer_cast<CasperTech::PlaybackErrorEvent>(event);
+                    std::cout << "Got error " << evt->msg << std::endl;
+                }
                 std::cout << "Got event " << unsigned(event->eventType) << std::endl;
             }
         }
@@ -25,6 +31,7 @@ class EventReceiver: public CasperTech::IAudioPlayerEventReceiver
 
 void commandDone(CommandResult result, const std::string& errorMessage)
 {
+    std::cout << errorMessage << std::endl;
     std::unique_lock<std::mutex> lk(waitForCommandMutex);
     waitForCommand.notify_one();
 }
